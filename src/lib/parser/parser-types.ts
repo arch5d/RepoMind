@@ -53,4 +53,5 @@ export interface ParserConfig {
   repoId: string;
   repoDir: string;
   ignorePatterns?: string[];
+  onProgress?: (progress: number) => void;
 }

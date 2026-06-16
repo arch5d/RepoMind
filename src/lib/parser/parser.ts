@@ -7,11 +7,15 @@ import type { ParserConfig, ParseResult } from "./parser-types";
 
 export async function parseRepository(config: ParserConfig): Promise<ParseResult> {
   const startTime = Date.now();
-  const { repoId, repoDir } = config;
+  const { repoId, repoDir, onProgress } = config;
 
   logger.info("parser", "Starting repository parse", { repoId, repoDir });
 
+  onProgress?.(0.1);
+
   const discovery = discoverSourceFiles(repoDir, config.ignorePatterns);
+
+  onProgress?.(0.25);
 
   if (discovery.files.length === 0) {
     logger.warn("parser", "No source files found to parse", { repoId });
@@ -27,11 +31,17 @@ export async function parseRepository(config: ParserConfig): Promise<ParseResult
 
   const { project, fileCount } = createProject(discovery.files, repoDir);
 
+  onProgress?.(0.35);
+
   const sourceFiles = project.getSourceFiles();
 
   const symbols = extractSymbols(repoId, sourceFiles);
 
+  onProgress?.(0.5);
+
   const dependencies = buildDependencyGraph(repoId, symbols, sourceFiles);
+
+  onProgress?.(0.75);
 
   const durationMs = Date.now() - startTime;
 

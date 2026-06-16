@@ -66,8 +66,13 @@ CREATE TABLE IF NOT EXISTS dependencies (
   created_at      TEXT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_parsed_symbols_repo_id ON parsed_symbols(repo_id);
-CREATE INDEX IF NOT EXISTS idx_parsed_symbols_type ON parsed_symbols(symbol_type);
+CREATE INDEX IF NOT EXISTS idx_symbols_repo_id ON parsed_symbols(repo_id);
+CREATE INDEX IF NOT EXISTS idx_symbols_name ON parsed_symbols(name);
+CREATE INDEX IF NOT EXISTS idx_symbols_type ON parsed_symbols(symbol_type);
 CREATE INDEX IF NOT EXISTS idx_dependencies_repo_id ON dependencies(repo_id);
+CREATE INDEX IF NOT EXISTS idx_dependencies_source ON dependencies(source_id);
+CREATE INDEX IF NOT EXISTS idx_dependencies_target ON dependencies(target_id);
 CREATE INDEX IF NOT EXISTS idx_dependencies_relation ON dependencies(relationship);
+CREATE INDEX IF NOT EXISTS idx_symbols_repo_type ON parsed_symbols(repo_id, symbol_type);
+CREATE INDEX IF NOT EXISTS idx_dependencies_repo_relation ON dependencies(repo_id, relationship);
 `;
