@@ -11,7 +11,7 @@ async function checkChroma(): Promise<ServiceCheck> {
   const start = Date.now();
 
   try {
-    const response = await fetch(`${config.chroma.url}/api/v1/heartbeat`, {
+    const response = await fetch(`${config.chroma.url}/api/v2/heartbeat`, {
       signal: AbortSignal.timeout(5000),
     });
 
