@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getConfig } from "@/config";
+import { getAIProvider } from "@/lib/ai/provider";
+import { ensureCollections } from "@/lib/embedding/vector-store";
 import { logger } from "@/lib/logger";
 import type { HealthResponse, ServiceCheck } from "@/types/api";
 
@@ -36,56 +38,29 @@ async function checkChroma(): Promise<ServiceCheck> {
   }
 }
 
-async function checkOpenAI(): Promise<ServiceCheck> {
-  const config = getConfig();
-  const start = Date.now();
-
-  if (!config.openai.apiKey) {
-    return {
-      status: "error",
-      error: "OPENAI_API_KEY not configured",
-      latencyMs: Date.now() - start,
-    };
-  }
-
-  try {
-    const response = await fetch("https://api.openai.com/v1/models", {
-      headers: {
-        Authorization: `Bearer ${config.openai.apiKey}`,
-      },
-      signal: AbortSignal.timeout(10000),
-    });
-
-    if (!response.ok) {
-      return {
-        status: "error",
-        error: `OpenAI returned ${response.status}`,
-        latencyMs: Date.now() - start,
-      };
-    }
-
-    return {
-      status: "ok",
-      latencyMs: Date.now() - start,
-    };
-  } catch (error) {
-    return {
-      status: "error",
-      error: error instanceof Error ? error.message : "Connection failed",
-      latencyMs: Date.now() - start,
-    };
-  }
-}
-
 export async function GET() {
   const start = Date.now();
-  const [chromaCheck, openaiCheck] = await Promise.all([
+
+  const provider = getAIProvider();
+  const [chromaCheck, providerInfo] = await Promise.all([
     checkChroma(),
-    checkOpenAI(),
+    provider.getProviderInfo(),
   ]);
 
-  const allOk = chromaCheck.status === "ok" && openaiCheck.status === "ok";
-  const someOk = chromaCheck.status === "ok" || openaiCheck.status === "ok";
+  ensureCollections().catch((error) => {
+    logger.error("health", "Failed to ensure collections", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
+
+  const aiCheck: ServiceCheck = {
+    status: providerInfo.status,
+    error: providerInfo.error,
+    latencyMs: providerInfo.latencyMs,
+  };
+
+  const allOk = chromaCheck.status === "ok" && aiCheck.status === "ok";
+  const someOk = chromaCheck.status === "ok" || aiCheck.status === "ok";
 
   const response: HealthResponse = {
     status: allOk ? "healthy" : someOk ? "degraded" : "unhealthy",
@@ -93,14 +68,16 @@ export async function GET() {
     uptime: process.uptime(),
     checks: {
       chroma: chromaCheck,
-      openai: openaiCheck,
+      ai: aiCheck,
     },
+    provider: providerInfo,
   };
 
   const statusCode = response.status === "healthy" ? 200 : response.status === "degraded" ? 200 : 503;
 
   logger.info("health", "Health check completed", {
     status: response.status,
+    provider: providerInfo.provider,
     latencyMs: Date.now() - start,
   });
 

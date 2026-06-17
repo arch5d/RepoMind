@@ -64,14 +64,24 @@ export interface AgentRequest {
   repoId?: string;
 }
 
+export interface ProviderInfo {
+  provider: string;
+  model: string;
+  embeddingModel: string;
+  status: string;
+  error?: string;
+  latencyMs?: number;
+}
+
 export interface HealthResponse {
   status: "healthy" | "degraded" | "unhealthy";
   version: string;
   uptime: number;
   checks: {
     chroma: ServiceCheck;
-    openai: ServiceCheck;
+    ai: ServiceCheck;
   };
+  provider: ProviderInfo;
 }
 
 export interface ServiceCheck {

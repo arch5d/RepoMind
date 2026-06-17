@@ -19,40 +19,53 @@ const SIDEBAR_ITEMS: Array<{
   label: string;
   icon: typeof LayoutDashboard;
   disabled?: boolean;
+  requiresRepo?: boolean;
 }> = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/repos", label: "Repositories", icon: GitBranch },
   { href: "/search", label: "Search", icon: Search },
-  { href: "/repos/[id]/architecture", label: "Architecture", icon: Workflow, disabled: true },
-  { href: "/repos/[id]/dependencies", label: "Dependencies", icon: GitFork, disabled: true },
-  { href: "/repos/[id]/docs", label: "Documentation", icon: FileText, disabled: true },
+  { href: "/repos/[id]/architecture", label: "Architecture", icon: Workflow, requiresRepo: true },
+  { href: "/repos/[id]/dependencies", label: "Dependencies", icon: GitFork, requiresRepo: true },
+  { href: "/repos/[id]/docs", label: "Documentation", icon: FileText, requiresRepo: true },
   { href: "/planner", label: "Planner", icon: Pencil, disabled: true },
 ];
 
+function resolveHref(href: string, repoId: string | null): string {
+  if (!repoId || !href.includes("[id]")) return href;
+  return href.replace("[id]", repoId);
+}
+
 export function Sidebar() {
   const pathname = usePathname();
+
+  const repoId = React.useMemo(() => {
+    const match = pathname.match(/\/repos\/([^/]+)/);
+    return match ? (match[1] ?? null) : null;
+  }, [pathname]);
 
   return (
     <aside className="hidden w-56 shrink-0 border-r md:block">
       <nav className="flex flex-col gap-1 p-4">
         {SIDEBAR_ITEMS.map((item) => {
+          const href = resolveHref(item.href, repoId);
           const isActive = item.href === "/"
             ? pathname === "/"
-            : pathname.startsWith(item.href.split("[id]")[0] ?? item.href);
+            : pathname.startsWith(href.split("/").slice(0, 4).join("/"));
+          const disabled = item.disabled || (item.requiresRepo && !repoId);
 
           return (
             <Link
               key={item.label}
-              href={item.disabled ? "#" : item.href}
+              href={disabled ? "#" : href}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                item.disabled
+                disabled
                   ? "cursor-not-allowed text-muted-foreground/50"
                   : isActive
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
-              onClick={(e) => item.disabled && e.preventDefault()}
+              onClick={(e) => disabled && e.preventDefault()}
             >
               <item.icon className="h-4 w-4 shrink-0" />
               <span>{item.label}</span>

@@ -1,9 +1,17 @@
+type AIProviderType = "openai" | "ollama";
+
 interface AppConfig {
   app: {
     url: string;
     nodeEnv: string;
     isDev: boolean;
     isProd: boolean;
+  };
+  ai: {
+    provider: AIProviderType;
+    ollamaBaseUrl: string;
+    ollamaChatModel: string;
+    ollamaEmbedModel: string;
   };
   openai: {
     apiKey: string;
@@ -61,6 +69,12 @@ export function getConfig(): AppConfig {
       nodeEnv,
       isDev: nodeEnv === "development",
       isProd: nodeEnv === "production",
+    },
+    ai: {
+      provider: optionalEnv("AI_PROVIDER", "openai") as AIProviderType,
+      ollamaBaseUrl: optionalEnv("OLLAMA_BASE_URL", "http://host.docker.internal:11434"),
+      ollamaChatModel: optionalEnv("OLLAMA_CHAT_MODEL", "qwen3:8b"),
+      ollamaEmbedModel: optionalEnv("OLLAMA_EMBED_MODEL", "nomic-embed-text"),
     },
     openai: {
       apiKey: optionalEnv("OPENAI_API_KEY", ""),

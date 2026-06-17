@@ -13,9 +13,13 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\""
   },
   "dependencies": {
+    "@langchain/core": "^1.1.49",
+    "@langchain/langgraph": "^1.4.2",
+    "@langchain/openai": "^1.4.7",
     "@octokit/rest": "^22.0.1",
     "@radix-ui/react-separator": "^1.1.1",
     "@radix-ui/react-slot": "^1.1.1",
+    "@xyflow/react": "^12.11.0",
     "better-sqlite3": "^12.10.1",
     "chromadb": "^3.4.3",
     "class-variance-authority": "^0.7.1",

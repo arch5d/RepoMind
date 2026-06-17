@@ -75,4 +75,21 @@ CREATE INDEX IF NOT EXISTS idx_dependencies_target ON dependencies(target_id);
 CREATE INDEX IF NOT EXISTS idx_dependencies_relation ON dependencies(relationship);
 CREATE INDEX IF NOT EXISTS idx_symbols_repo_type ON parsed_symbols(repo_id, symbol_type);
 CREATE INDEX IF NOT EXISTS idx_dependencies_repo_relation ON dependencies(repo_id, relationship);
+
+CREATE TABLE IF NOT EXISTS documents (
+  id              TEXT PRIMARY KEY,
+  repo_id         TEXT NOT NULL REFERENCES repositories(id) ON DELETE CASCADE,
+  doc_type        TEXT NOT NULL
+                  CHECK(doc_type IN ('readme','api_doc','setup_guide','architecture_doc','feature_doc')),
+  title           TEXT NOT NULL,
+  description     TEXT NOT NULL DEFAULT '',
+  content         TEXT NOT NULL,
+  word_count      INTEGER NOT NULL DEFAULT 0,
+  model           TEXT NOT NULL DEFAULT '',
+  generated_at    TEXT NOT NULL,
+  created_at      TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_documents_repo_id ON documents(repo_id);
+CREATE INDEX IF NOT EXISTS idx_documents_type ON documents(doc_type);
 `;
