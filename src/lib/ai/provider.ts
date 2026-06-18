@@ -1,6 +1,7 @@
 import { getConfig } from "@/config";
 import { createOpenAIProvider } from "./openai-provider";
 import { createOllamaProvider } from "./ollama-provider";
+import { createNVIDIAProvider } from "./nim-provider";
 import type { AIProvider, AIProviderType } from "./types";
 
 let _provider: AIProvider | null = null;
@@ -19,6 +20,8 @@ export function createProvider(type: AIProviderType): AIProvider {
       return createOpenAIProvider();
     case "ollama":
       return createOllamaProvider();
+    case "nvidia":
+      return createNVIDIAProvider();
     default:
       throw new Error(`Unknown AI provider: ${type}`);
   }

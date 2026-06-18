@@ -1,4 +1,4 @@
-export type AIProviderType = "openai" | "ollama";
+export type AIProviderType = "openai" | "ollama" | "nvidia";
 
 export interface ChatOptions {
   systemPrompt: string;

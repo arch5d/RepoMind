@@ -1,6 +1,6 @@
 # RepoMind
 
-**AI-powered repository intelligence platform.**
+**AI-powered repository intelligence platform. Supports OpenAI, Ollama, and NVIDIA NIM.**
 
 RepoMind helps developers understand unfamiliar codebases through semantic search, architecture generation, dependency tracing, and automated documentation. Submit any GitHub repository URL and get an interactive knowledge graph of its structure, answered questions about its code, and auto-generated documentation.
 
@@ -31,7 +31,7 @@ docker compose up -d
 
 1. **Submit** a GitHub repository URL
 2. **Clone & Parse** — the repository is cloned and scanned with AST parsing (ts-morph). Functions, classes, interfaces, components, and API routes are extracted.
-3. **Embed** — each code chunk is vector-embedded (OpenAI text-embedding-3-small or local nomic-embed-text via Ollama) and stored in ChromaDB.
+3. **Embed** — each code chunk is vector-embedded (OpenAI text-embedding-3-small, NVIDIA nv-embedqa-e5-v5, or Ollama nomic-embed-text) and stored in ChromaDB.
 4. **Explore** — use semantic search, architecture graphs, dependency traces, and auto documentation agents to understand the codebase.
 
 ## Architecture
@@ -55,10 +55,11 @@ docker compose up -d
                      └──────┬──────┘
                             │
                      ┌──────▼──────┐
-                     │  AI Provider │
-                     │  (Ollama     │
-                     │   or OpenAI) │
-                     └─────────────┘
+                      │  AI Provider │
+                      │  (OpenAI /   │
+                      │   Ollama /   │
+                      │   NVIDIA NIM)│
+                      └─────────────┘
 ```
 
 ## API Overview
@@ -89,12 +90,29 @@ Environment variables are set in `.env.local` (copy from `.env.example`).
 
 ### AI Provider
 
+RepoMind supports three AI providers. Set `AI_PROVIDER` in `.env.local`:
+
+| Provider | Chat Model | Embedding Model | API Key | Speed | Quality |
+|----------|-----------|----------------|---------|-------|---------|
+| **OpenAI** | `gpt-4o-mini` | `text-embedding-3-small` (1536d) | Required | Fast | Highest |
+| **NVIDIA NIM** | `meta/llama-3.1-8b-instruct` | `nv-embedqa-e5-v5` (1024d) | Required | Fast | High |
+| **Ollama** (local) | `qwen3:8b` | `nomic-embed-text` (768d) | None | Slow (CPU) | Good |
+
 **OpenAI** (default):
 ```env
 AI_PROVIDER=openai
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
 OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+```
+
+**NVIDIA NIM** (cloud API):
+```env
+AI_PROVIDER=nvidia
+NVIDIA_API_KEY=nvapi-...
+NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+NVIDIA_CHAT_MODEL=meta/llama-3.1-8b-instruct
+NVIDIA_EMBED_MODEL=nvidia/nv-embedqa-e5-v5
 ```
 
 **Ollama** (local, no API key):
@@ -131,7 +149,7 @@ JOB_PARSE_TIMEOUT_MS=600000
 |-------|-----------|
 | Frontend | Next.js 15, React 19, Tailwind CSS, shadcn/ui, React Flow |
 | Backend | Node.js, Next.js Route Handlers |
-| AI | LangChain, LangGraph, OpenAI / Ollama |
+| AI | LangChain, LangGraph, OpenAI / NVIDIA NIM / Ollama |
 | Vector DB | ChromaDB |
 | Code Analysis | ts-morph (AST), simple-git |
 | Database | SQLite (better-sqlite3) |

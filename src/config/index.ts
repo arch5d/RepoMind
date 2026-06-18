@@ -1,4 +1,4 @@
-type AIProviderType = "openai" | "ollama";
+type AIProviderType = "openai" | "ollama" | "nvidia";
 
 interface AppConfig {
   app: {
@@ -12,6 +12,12 @@ interface AppConfig {
     ollamaBaseUrl: string;
     ollamaChatModel: string;
     ollamaEmbedModel: string;
+  };
+  nvidia: {
+    apiKey: string;
+    baseUrl: string;
+    chatModel: string;
+    embedModel: string;
   };
   openai: {
     apiKey: string;
@@ -75,6 +81,12 @@ export function getConfig(): AppConfig {
       ollamaBaseUrl: optionalEnv("OLLAMA_BASE_URL", "http://host.docker.internal:11434"),
       ollamaChatModel: optionalEnv("OLLAMA_CHAT_MODEL", "qwen3:8b"),
       ollamaEmbedModel: optionalEnv("OLLAMA_EMBED_MODEL", "nomic-embed-text"),
+    },
+    nvidia: {
+      apiKey: optionalEnv("NVIDIA_API_KEY", ""),
+      baseUrl: optionalEnv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"),
+      chatModel: optionalEnv("NVIDIA_CHAT_MODEL", "meta/llama-3.1-8b-instruct"),
+      embedModel: optionalEnv("NVIDIA_EMBED_MODEL", "nvidia/nv-embedqa-e5-v5"),
     },
     openai: {
       apiKey: optionalEnv("OPENAI_API_KEY", ""),
