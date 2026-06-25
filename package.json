@@ -1,0 +1,23 @@
+{
+  "name": "repomind-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RepoMind monorepo with frontend (Next.js) and backend (Express.js)",
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c cyan,green \"npm run dev -w Backend\" \"npm run dev -w RepoMind\"",
+    "dev:backend": "npm run dev -w Backend",
+    "dev:frontend": "npm run dev -w RepoMind",
+    "build": "npm run build -w Backend && npm run build -w RepoMind",
+    "start": "concurrently -n backend,frontend \"npm run start -w Backend\" \"npm run start -w RepoMind\"",
+    "typecheck": "npm run typecheck -w Backend && npm run typecheck -w RepoMind",
+    "typecheck:backend": "npm run typecheck -w Backend",
+    "typecheck:frontend": "npm run typecheck -w RepoMind"
+  },
+  "workspaces": [
+    "Backend",
+    "RepoMind"
+  ],
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

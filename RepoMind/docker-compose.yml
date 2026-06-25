@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      - CHROMA_URL=http://chroma:8000
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+      - repo-data:/app/data
+    depends_on:
+      chroma:
+        condition: service_started
+    networks:
+      - repomind-net
+
+  chroma:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma-data
+      - ANONYMIZED_TELEMETRY=FALSE
+    volumes:
+      - chroma-data:/chroma/chroma-data
+    networks:
+      - repomind-net
+
+volumes:
+  chroma-data:
+  repo-data:
+
+networks:
+  repomind-net:
+    driver: bridge
