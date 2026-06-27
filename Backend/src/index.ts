@@ -11,6 +11,7 @@ import { router as dependenciesRouter } from "@/routes/dependencies";
 import { router as docsRouter } from "@/routes/docs";
 import { router as statsRouter } from "@/routes/stats";
 import { router as settingsRouter } from "@/routes/settings";
+import documentsRouter from "@/routes/documents";
 
 const config = getConfig();
 const app = express();
@@ -24,6 +25,7 @@ app.use("/api/search", searchRouter);
 app.use("/api/repos/:repoId/architecture", architectureRouter);
 app.use("/api/repos/:repoId/dependencies", dependenciesRouter);
 app.use("/api/repos/:repoId/docs", docsRouter);
+app.use("/api/documents", documentsRouter);
 app.use("/api/stats", statsRouter);
 app.use("/api/settings", settingsRouter);
 

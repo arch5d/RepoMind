@@ -29,6 +29,9 @@ interface AppConfig {
   };
   chroma: {
     url: string;
+    apiKey: string;
+    tenant: string;
+    database: string;
     collections: {
       codeChunks: string;
       dependencyGraph: string;
@@ -98,6 +101,9 @@ export function getConfig(): AppConfig {
     },
     chroma: {
       url: optionalEnv("CHROMA_URL", "http://localhost:8000"),
+      apiKey: optionalEnv("CHROMA_API_KEY", ""),
+      tenant: optionalEnv("CHROMA_TENANT", ""),
+      database: optionalEnv("CHROMA_DATABASE", ""),
       collections: {
         codeChunks: optionalEnv("CHROMA_COLLECTION_CODE_CHUNKS", "code_chunks"),
         dependencyGraph: optionalEnv("CHROMA_COLLECTION_DEPENDENCY_GRAPH", "dependency_graph"),

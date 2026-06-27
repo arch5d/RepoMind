@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@chroma-core/default-embed": "^0.1.9",
     "@langchain/core": "^1.1.49",
     "@langchain/langgraph": "^1.4.2",
     "@langchain/openai": "^1.4.7",
