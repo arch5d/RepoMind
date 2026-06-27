@@ -119,6 +119,7 @@ The platform transforms unfamiliar repositories into an interactive knowledge ba
                  Interactive Answers
 
 
+
   ## Why Agentic CAG?
 
 Traditional repository assistants rely on vector databases that fragment repositories into disconnected chunks.
