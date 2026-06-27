@@ -1,19 +1,22 @@
-import { CloudClient } from 'chromadb';
-import dotenv from 'dotenv';
+import { CloudClient } from "chromadb";
+import dotenv from "dotenv";
 
 dotenv.config();
 
 const client = new CloudClient();
 
-let collectionPromise: ReturnType<typeof client.getOrCreateCollection> | null = null;
+export function getCloudClient(): CloudClient {
+  return client;
+}
 
-const getCollection = async () => {
-  if (!collectionPromise) {
-    collectionPromise = client.getOrCreateCollection({
-      name: "my_collection",
-    });
+export async function getOrCreateCollection(name: string) {
+  return client.getOrCreateCollection({ name });
+}
+
+export async function getCollection(name: string) {
+  try {
+    return await client.getCollection({ name });
+  } catch {
+    return null;
   }
-  return collectionPromise;
-};
-
-export default getCollection;
+}

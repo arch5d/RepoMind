@@ -1,55 +1,22 @@
-import { ChromaClient } from "chromadb";
 import { getConfig } from "@/config";
+import { getCloudClient, getOrCreateCollection, getCollection as getChromaCollection } from "@/config/chroma";
 import { logger } from "@/lib/logger";
 import type { EmbeddingRecord, EmbeddingSearchResult } from "./embedding-types";
 
-const noopEmbeddingFunction = {
-  generate: async (_texts: string[]) => [] as number[][],
-};
-
-let _client: ChromaClient | null = null;
-
-function parseChromaUrl(url: string): { host: string; port: number; ssl: boolean } {
-  const parsed = new URL(url);
-  return {
-    ssl: parsed.protocol === "https:",
-    host: parsed.hostname,
-    port: parseInt(parsed.port, 10) || (parsed.protocol === "https:" ? 443 : 80),
-  };
-}
-
-function getClient(): ChromaClient {
-  if (!_client) {
-    const config = getConfig();
-    const { host, port, ssl } = parseChromaUrl(config.chroma.url);
-    _client = new ChromaClient({ host, port, ssl });
-  }
-  return _client;
-}
-
-async function getCollection() {
+async function getDefaultCollection() {
   const config = getConfig();
-  const client = getClient();
-  return client.getOrCreateCollection({
-    name: config.chroma.collections.codeChunks,
-    embeddingFunction: noopEmbeddingFunction,
-  });
+  return getOrCreateCollection(config.chroma.collections.codeChunks);
 }
 
 async function getCollectionByName(name: string) {
-  const client = getClient();
-  try {
-    return await client.getCollection({ name, embeddingFunction: noopEmbeddingFunction });
-  } catch {
-    return null;
-  }
+  return getChromaCollection(name);
 }
 
 export async function upsertEmbeddings(records: EmbeddingRecord[]): Promise<void> {
   if (records.length === 0) return;
 
   const config = getConfig();
-  const collection = await getCollection();
+  const collection = await getDefaultCollection();
 
   const ids = records.map((r) => r.id);
   const embeddings = records.map((r) => r.embedding);
@@ -75,7 +42,7 @@ export async function upsertEmbeddings(records: EmbeddingRecord[]): Promise<void
 }
 
 export async function deleteRepoEmbeddings(repoId: string): Promise<void> {
-  const collection = await getCollection();
+  const collection = await getDefaultCollection();
 
   await collection.delete({
     where: { repoId },
@@ -87,7 +54,7 @@ export async function deleteRepoEmbeddings(repoId: string): Promise<void> {
 }
 
 export async function getEmbeddings(ids: string[]): Promise<EmbeddingRecord[]> {
-  const collection = await getCollection();
+  const collection = await getDefaultCollection();
   const results = await collection.get({ ids, include: ["embeddings", "metadatas", "documents"] });
 
   const records: EmbeddingRecord[] = [];
@@ -156,7 +123,7 @@ export async function queryCollection(
 
 export async function ensureCollections(): Promise<void> {
   const config = getConfig();
-  const client = getClient();
+  const client = getCloudClient();
   const required = [
     config.chroma.collections.codeChunks,
     config.chroma.collections.dependencyGraph,
@@ -165,10 +132,7 @@ export async function ensureCollections(): Promise<void> {
   ];
   for (const name of required) {
     try {
-      await client.getOrCreateCollection({
-        name,
-        embeddingFunction: noopEmbeddingFunction,
-      });
+      await client.getOrCreateCollection({ name });
       logger.info("vector-store", "Collection ready", { name });
     } catch (error) {
       logger.error("vector-store", "Failed to ensure collection", {
@@ -184,7 +148,7 @@ export async function queryEmbeddings(
   limit: number = 10,
   filter?: { repoId?: string; chunkType?: string },
 ): Promise<EmbeddingSearchResult[]> {
-  const collection = await getCollection();
+  const collection = await getDefaultCollection();
 
   const results = await collection.query({
     queryEmbeddings: [embedding],

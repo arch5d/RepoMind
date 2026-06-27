@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-import { join } from "path";
+import { CloudClient } from "chromadb";
 
 const REPO_ID = process.argv[2] || "bc2040f8-38d1-4ff0-ad83-37c5281a99c7";
 const DB_PATH = "/app/data/repomind.db";
@@ -36,7 +36,7 @@ async function getEmbedding(text) {
 async function main() {
   // Update status
   db.prepare("UPDATE repositories SET embed_status = 'embedding' WHERE id = ?").run(REPO_ID);
-  
+
   const embeddings = [];
   for (let i = 0; i < chunks.length; i++) {
     console.log(`Embedding chunk ${i + 1}/${chunks.length}...`);
@@ -45,31 +45,24 @@ async function main() {
   }
   console.log(`Generated ${embeddings.length} embeddings, dim=${embeddings[0]?.length}`);
 
-  // 4. Upsert to Chroma
-  const chromaUrl = process.env.CHROMA_URL || "http://chroma:8000";
+  // 4. Upsert to Chroma Cloud
   const collectionName = process.env.CHROMA_COLLECTION_CODE_CHUNKS || "code_chunks";
-
-  const API_BASE = `${chromaUrl}/api/v2/tenants/default_tenant/databases/default_database`;
+  const client = new CloudClient();
 
   // Delete old collection if exists (to change dimension)
-  let collections = await (await fetch(`${API_BASE}/collections`)).json();
-  let existing = collections.find(c => c.name === collectionName);
-  if (existing) {
-    const delRes = await fetch(`${API_BASE}/collections/${existing.id}`, { method: "DELETE" });
-    if (delRes.ok) console.log(`Deleted old collection: ${collectionName}`);
+  try {
+    const existing = await client.getCollection({ name: collectionName });
+    if (existing) {
+      await client.deleteCollection({ name: collectionName });
+      console.log(`Deleted old collection: ${collectionName}`);
+    }
+  } catch {
+    // Collection doesn't exist, will create below
   }
 
-  // Create new collection
-  const createRes = await fetch(`${API_BASE}/collections`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: collectionName, configuration: {}, metadata: null }),
-  });
-  if (!createRes.ok) throw new Error(`Create collection failed: ${createRes.status} ${await createRes.text()}`);
-  const collection = await createRes.json();
-  console.log(`Created collection: ${collectionName}`);
+  const collection = await client.getOrCreateCollection({ name: collectionName });
+  console.log(`Collection ready: ${collectionName}`);
 
-  // Add embeddings
   const ids = chunks.map(c => c.id);
   const metadatas = chunks.map(c => ({
     repoId: c.repoId,
@@ -79,16 +72,8 @@ async function main() {
   }));
   const documents = chunks.map(c => c.content);
 
-  const addRes = await fetch(`${API_BASE}/collections/${collection.id}/add`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ids, embeddings, metadatas, documents }),
-  });
-
-  if (!addRes.ok) {
-    throw new Error(`Chroma add failed: ${addRes.status} ${await addRes.text()}`);
-  }
-  console.log(`Upserted ${ids.length} embeddings to Chroma`);
+  await collection.add({ ids, embeddings, metadatas, documents });
+  console.log(`Upserted ${ids.length} embeddings to Chroma Cloud`);
 
   // 5. Update status
   db.prepare("UPDATE repositories SET embed_status = 'embedded' WHERE id = ?").run(REPO_ID);

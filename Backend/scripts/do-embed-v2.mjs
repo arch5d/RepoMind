@@ -1,11 +1,7 @@
-import { ChromaClient } from "chromadb";
+import { CloudClient } from "chromadb";
 
 async function main() {
-  const client = new ChromaClient({
-    host: "chroma",
-    port: 8000,
-    ssl: false,
-  });
+  const client = new CloudClient();
 
   // List collections
   const collections = await client.listCollections();
@@ -22,9 +18,7 @@ async function main() {
     console.log(`Collection ${collectionName} does not exist, creating new`);
   }
 
-  const collection = await client.getOrCreateCollection({
-    name: collectionName,
-  });
+  const collection = await client.getOrCreateCollection({ name: collectionName });
   console.log(`Collection ready: ${collectionName}`);
 
   // Now do the embedding

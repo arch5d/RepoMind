@@ -1,5 +1,5 @@
 import Database from "better-sqlite3";
-import { ChromaClient } from "chromadb";
+import { CloudClient } from "chromadb";
 
 const db = new Database("/app/data/repomind.db");
 
@@ -8,8 +8,6 @@ const failedRepos = db.prepare("SELECT id, name, owner FROM repositories WHERE e
 console.log(`Found ${failedRepos.length} repos with failed embeddings:\n${failedRepos.map(r => `  - ${r.owner}/${r.name} (${r.id})`).join("\n")}\n`);
 
 const OLLAMA_URL = "http://repomind-ollama:11434";
-const CHROMA_HOST = "chroma";
-const CHROMA_PORT = 8000;
 
 async function getBatchEmbedding(texts) {
   const res = await fetch(`${OLLAMA_URL}/api/embed`, {
@@ -59,8 +57,8 @@ async function embedRepo(repo) {
   const elapsed = ((Date.now() - start) / 1000).toFixed(1);
   console.log(`  Generated ${embeddings.length} embeddings, dim=${embeddings[0]?.length}, in ${elapsed}s`);
 
-  // Upsert to Chroma
-  const client = new ChromaClient({ host: CHROMA_HOST, port: CHROMA_PORT, ssl: false });
+  // Upsert to Chroma Cloud
+  const client = new CloudClient();
   const collection = await ensureCollection(client, "code_chunks");
   console.log(`  Collection ready`);
 

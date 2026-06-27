@@ -1,5 +1,5 @@
-import type { Request, Response } from 'express';
-import getCollection from '@/config/chroma';
+import type { Request, Response } from "express";
+import { getOrCreateCollection } from "@/config/chroma";
 
 export interface AddDocumentRequest {
   documents: string[];
@@ -9,12 +9,12 @@ export interface AddDocumentRequest {
 
 export const addNewDocument = async (
   request: Request<{}, {}, AddDocumentRequest>,
-  response: Response
+  response: Response,
 ): Promise<void> => {
   try {
     const { documents, ids, metadatas } = request.body;
 
-    const collection = await getCollection();
+    const collection = await getOrCreateCollection("my_collection");
 
     await collection.add({
       ids,
@@ -23,13 +23,13 @@ export const addNewDocument = async (
     });
 
     response.json({
-      message: 'Documents added successfully',
+      message: "Documents added successfully",
       count: documents.length,
     });
   } catch (error) {
     response.status(500).json({
-      error: 'Internal server error',
-      details: error instanceof Error ? error.message : 'Unknown error',
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };

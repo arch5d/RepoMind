@@ -1,9 +1,7 @@
 import Database from "better-sqlite3";
-import { ChromaClient } from "chromadb";
+import { CloudClient } from "chromadb";
 
 const db = new Database("/app/data/repomind.db");
-const CHROMA_HOST = "chroma";
-const CHROMA_PORT = 8000;
 
 // Read config directly from env (already loaded in Docker container)
 const apiKey = process.env.NVIDIA_API_KEY;
@@ -73,7 +71,7 @@ async function embedRepo(repo) {
   }
   console.log(`  Generated ${embeddings.length} embeddings, dim=${embeddings[0]?.length}`);
 
-  const client = new ChromaClient({ host: CHROMA_HOST, port: CHROMA_PORT, ssl: false });
+  const client = new CloudClient();
   const collection = await client.getOrCreateCollection({ name: "code_chunks" });
 
   const ids = chunks.map(c => c.id);

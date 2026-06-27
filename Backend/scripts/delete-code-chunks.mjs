@@ -1,6 +1,6 @@
-import { ChromaClient } from "chromadb";
+import { CloudClient } from "chromadb";
 
-const client = new ChromaClient({ host: "chroma", port: 8000, ssl: false });
+const client = new CloudClient();
 
 const name = "code_chunks";
 try {

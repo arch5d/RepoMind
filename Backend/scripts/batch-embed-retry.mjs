@@ -1,10 +1,8 @@
 import Database from "better-sqlite3";
-import { ChromaClient } from "chromadb";
+import { CloudClient } from "chromadb";
 
 const db = new Database("/app/data/repomind.db");
 const OLLAMA_URL = "http://repomind-ollama:11434";
-const CHROMA_HOST = "chroma";
-const CHROMA_PORT = 8000;
 const BATCH_SIZE = 100;
 
 async function getBatchEmbedding(texts) {
@@ -49,8 +47,8 @@ async function embedRepo(repo) {
   }
   console.log(`  Total: ${allEmbeddings.length} embeddings, dim=${allEmbeddings[0]?.length}`);
 
-  // Upsert to Chroma
-  const client = new ChromaClient({ host: CHROMA_HOST, port: CHROMA_PORT, ssl: false });
+  // Upsert to Chroma Cloud
+  const client = new CloudClient();
   const collection = await client.getOrCreateCollection({ name: "code_chunks" });
 
   const ids = chunks.map(c => c.id);

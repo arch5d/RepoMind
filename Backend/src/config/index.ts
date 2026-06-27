@@ -28,7 +28,6 @@ interface AppConfig {
     embeddingModel: string;
   };
   chroma: {
-    url: string;
     apiKey: string;
     tenant: string;
     database: string;
@@ -100,7 +99,6 @@ export function getConfig(): AppConfig {
       embeddingModel: optionalEnv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
     },
     chroma: {
-      url: optionalEnv("CHROMA_URL", "http://localhost:8000"),
       apiKey: optionalEnv("CHROMA_API_KEY", ""),
       tenant: optionalEnv("CHROMA_TENANT", ""),
       database: optionalEnv("CHROMA_DATABASE", ""),

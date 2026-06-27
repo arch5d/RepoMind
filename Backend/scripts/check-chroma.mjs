@@ -1,7 +1,7 @@
-import { ChromaClient } from "chromadb";
+import { CloudClient } from "chromadb";
 
 async function main() {
-  const client = new ChromaClient({ host: "chroma", port: 8000, ssl: false });
+  const client = new CloudClient();
 
   const names = ["code_chunks", "dependency_graph", "architecture_nodes", "documentation_nodes"];
 

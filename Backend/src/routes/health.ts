@@ -1,29 +1,18 @@
 import { Router } from "express";
-import { getConfig } from "@/config";
 import { getAIProvider } from "@/lib/ai/provider";
 import { ensureCollections } from "@/lib/embedding/vector-store";
+import { getCloudClient } from "@/config/chroma";
 import { logger } from "@/lib/logger";
 import type { HealthResponse, ServiceCheck } from "@/types/api";
 
 export const router = Router();
 
 async function checkChroma(): Promise<ServiceCheck> {
-  const config = getConfig();
   const start = Date.now();
 
   try {
-    const response = await fetch(`${config.chroma.url}/api/v2/heartbeat`, {
-      signal: AbortSignal.timeout(5000),
-    });
-
-    if (!response.ok) {
-      return {
-        status: "error",
-        error: `ChromaDB returned ${response.status}`,
-        latencyMs: Date.now() - start,
-      };
-    }
-
+    const client = getCloudClient();
+    await client.listCollections();
     return {
       status: "ok",
       latencyMs: Date.now() - start,
